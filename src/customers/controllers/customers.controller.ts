@@ -8,17 +8,33 @@ import {
   Body,
   ParseIntPipe,
 } from '@nestjs/common';
-import { CustomersService } from 'src/users/services/customers.service';
+import { CustomersService } from 'src/customers/services/customers.service';
 import {
   CreateCustomerDto,
   UpdateCustomerDto,
-} from 'src/users/dtos/customer.dtos';
+} from 'src/customers/dtos/customer.dtos';
 
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBadRequestResponse,
+  ApiForbiddenResponse,
+  ApiUnauthorizedResponse,
+  ApiCreatedResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+} from '@nestjs/swagger';
+
+@ApiTags('Customers')
 @Controller('customers')
 export class CustomersController {
   constructor(private customerService: CustomersService) {}
 
   @Get('/')
+  // swagger
+  @ApiOperation({ summary: 'Get all customers' })
+  @ApiOkResponse({ description: 'Response Ok' })
+  @ApiNotFoundResponse({ description: 'Not found response' })
   getCustomers() {
     return this.customerService.findAll();
   }
@@ -29,6 +45,18 @@ export class CustomersController {
   }
 
   @Post('/')
+  //swagger
+  @ApiOperation({ summary: 'Create customer' })
+  @ApiUnauthorizedResponse({
+    description: 'Not Authorized',
+  })
+  @ApiBadRequestResponse({
+    description: 'Bad request',
+  })
+  @ApiCreatedResponse({
+    description: 'Customer created',
+  })
+  @ApiForbiddenResponse()
   createCustomer(@Body() payload: CreateCustomerDto) {
     const rta = this.customerService.create(payload);
 

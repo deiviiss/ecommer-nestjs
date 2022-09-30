@@ -13,7 +13,6 @@ import {
   CreateFacturaDto,
   UpdateFacturaDto,
 } from 'src/facturas/dtos/factura.dtos';
-
 @Controller('facturas')
 export class FacturasController {
   constructor(private facturaService: FacturasService) {}

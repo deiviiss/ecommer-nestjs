@@ -1,24 +1,29 @@
-import { IsString, IsNumber, IsNotEmpty } from 'class-validator';
+import { IsString, IsNumber, IsNotEmpty, IsDate } from 'class-validator';
 // import { PartialType } from '@nestjs/mapped-types';
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 
 export class CreateFacturaDto {
-  @ApiProperty()
+  @ApiProperty({ description: 'Folio' })
   @IsString()
   @IsNotEmpty()
   readonly folio: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'status' })
   @IsString()
   @IsNotEmpty()
   readonly status: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Count' })
   @IsNumber()
   @IsNotEmpty()
   readonly cantidad: number;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Remember date' })
+  @IsDate()
+  @IsNotEmpty()
+  readonly rememberAt: Date;
+
+  @ApiProperty({ description: 'Observations' })
   @IsString()
   @IsNotEmpty()
   readonly notes: string;

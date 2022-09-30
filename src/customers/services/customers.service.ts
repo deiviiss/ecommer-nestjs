@@ -1,17 +1,19 @@
-import { Customer } from 'src/users/entities/customer.entity';
 import { NotFoundException } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
+import { Customer } from 'src/customers/entities/customer.entity';
 import {
   CreateCustomerDto,
   UpdateCustomerDto,
-} from 'src/users/dtos/customer.dtos';
+} from 'src/customers/dtos/customer.dtos';
 
 @Injectable()
 export class CustomersService {
+  //* provitional (db create id)
   private counterId = 2;
 
   private customers: Customer[] = [
     {
+      // *provitional
       customerId: 1,
       name: 'Armin Enrique',
       lastname: 'Hilera',
@@ -36,13 +38,13 @@ export class CustomersService {
   }
 
   create(payload: CreateCustomerDto) {
-    this.counterId = this.counterId + 1;
+    //* provitional
+    this.counterId = this.counterId;
 
     const newCustomer = {
       customerId: this.counterId,
       ...payload,
     };
-    console.log(newCustomer);
 
     this.customers.push(newCustomer);
 
