@@ -11,14 +11,18 @@ async function bootstrap() {
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
     }),
   );
 
+  // swagger
   if (process.env.NODE_ENV != 'production') {
     // Configuración Swagger en NestJS
     const config = new DocumentBuilder()
-      .setTitle('Comisiones API')
-      .setDescription('Doc Comisiones API')
+      .setTitle('Template API')
+      .setDescription('Doc Template API')
       .setVersion('1.0')
       .build();
     const document = SwaggerModule.createDocument(app, config);

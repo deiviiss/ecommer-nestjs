@@ -6,14 +6,7 @@ import {
   Patch,
   Delete,
   Body,
-  ParseIntPipe,
 } from '@nestjs/common';
-import { CustomersService } from 'src/customers/services/customers.service';
-import {
-  CreateCustomerDto,
-  UpdateCustomerDto,
-} from 'src/customers/dtos/customer.dtos';
-
 import {
   ApiTags,
   ApiOperation,
@@ -24,23 +17,30 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
 } from '@nestjs/swagger';
+import { MongoIdPipe } from 'src/common/mongo-id.pipe';
 
-@ApiTags('Customers')
+import { CustomersService } from 'src/users/services/customers.service';
+import {
+  CreateCustomerDto,
+  UpdateCustomerDto,
+} from 'src/users/dtos/customer.dtos';
+
+@ApiTags('Customer')
 @Controller('customers')
-export class CustomersController {
+export class CustomerController {
   constructor(private customerService: CustomersService) {}
 
   @Get('/')
   // swagger
-  @ApiOperation({ summary: 'Get all customers' })
+  @ApiOperation({ summary: 'Get all customer' })
   @ApiOkResponse({ description: 'Response Ok' })
   @ApiNotFoundResponse({ description: 'Not found response' })
-  getCustomers() {
+  getcustomer() {
     return this.customerService.findAll();
   }
 
   @Get('/:customerId')
-  getCustomer(@Param('customerId', ParseIntPipe) customerId: number) {
+  getFactura(@Param('customerId', MongoIdPipe) customerId: string) {
     return this.customerService.findOne(customerId);
   }
 
@@ -57,22 +57,22 @@ export class CustomersController {
     description: 'Customer created',
   })
   @ApiForbiddenResponse()
-  createCustomer(@Body() payload: CreateCustomerDto) {
+  createcustomer(@Body() payload: CreateCustomerDto) {
     const rta = this.customerService.create(payload);
 
     return rta;
   }
 
   @Patch('/:customerId')
-  updateCustomer(
-    @Param('customerId', ParseIntPipe) customerId: number,
+  updatecustomer(
+    @Param('customerId', MongoIdPipe) customerId: string,
     @Body() payload: UpdateCustomerDto,
   ) {
     return this.customerService.update(customerId, payload);
   }
 
   @Delete('/:customerId')
-  deleteCustomer(@Param('customerId', ParseIntPipe) customerId: number) {
+  deletecustomer(@Param('customerId', MongoIdPipe) customerId: string) {
     return this.customerService.remove(customerId);
   }
 }

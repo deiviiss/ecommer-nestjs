@@ -1,16 +1,7 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
 
-import {
-  ApiTags,
-  ApiOperation,
-  ApiBadRequestResponse,
-  ApiForbiddenResponse,
-  ApiUnauthorizedResponse,
-  ApiCreatedResponse,
-  ApiNotFoundResponse,
-  ApiOkResponse,
-} from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 @ApiTags('Home')
 @Controller()
 export class AppController {
@@ -19,5 +10,10 @@ export class AppController {
   @Get()
   getHello(): string {
     return this.appService.getHello();
+  }
+
+  @Get('/tasks')
+  getTasks() {
+    return this.appService.getTask();
   }
 }

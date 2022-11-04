@@ -1,47 +1,29 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { Model } from 'mongoose';
+import { InjectModel } from '@nestjs/mongoose';
 
 import { User } from 'src/users/entities/user.entitys';
-import { Factura } from 'src/users/entities/factura.entity';
 import { CreateUserDto, UpdateUserDto } from 'src/users/dtos/user.dtos';
 
-import { CustomersService } from 'src/customers/services/customers.service';
-import { ConfigService } from '@nestjs/config';
+// import productService
+// import { ProductsService } from 'src/products/services/products.service';
+
+// import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UsersService {
-  // injection services customers (products)
   constructor(
-    private customersService: CustomersService,
-    private configService: ConfigService, // injectar como module global // @Inject('API_KEY') private apiKey: string,
+    // injection services products (products)
+    // private productsService: ProductsService,
+    @InjectModel(User.name) private userModel: Model<User>,
   ) {}
 
-  private counterId = 2;
-
-  private users: User[] = [
-    {
-      userId: 1,
-      name: 'Armin Enrique',
-      email: 'admin@mail.com',
-      role: 'admin',
-      createAt: new Date(),
-      updateAt: new Date(),
-    },
-  ];
-
   findAll() {
-    const apiKey = this.configService.get('API_KEY');
-    console.log('apikey');
-
-    console.log(apiKey);
-
-    return this.users;
+    return this.userModel.find();
   }
 
-  findOne(id: number) {
-    console.log(this.users);
-
-    const user = this.users.find((item) => item.userId === id);
-    console.log(user);
+  findOne(id: string) {
+    const user = this.userModel.findById(id);
 
     if (!user) {
       throw new NotFoundException(`User ${id} not found`);
@@ -50,62 +32,44 @@ export class UsersService {
     return user;
   }
 
-  create(payload: CreateUserDto) {
-    this.counterId = this.counterId + 1;
+  async create(payload: CreateUserDto) {
+    const newuser = await this.userModel.create(payload);
 
-    //* provisional
-    const newUser = {
-      userId: this.counterId,
-      createAt: new Date(),
-      updateAt: new Date(),
-      ...payload,
-    };
-
-    this.users.push(newUser);
-
-    return newUser;
+    return await newuser.save();
   }
 
-  update(id: number, payload: UpdateUserDto) {
-    const user = this.findOne(id);
+  async update(id: string, payload: UpdateUserDto) {
+    const user = await this.findOne(id);
 
-    if (user) {
-      const index = this.users.findIndex((item) => item.userId === id);
-      this.users[index] = {
-        ...user,
-        ...payload,
-      };
-
-      return this.users[index];
+    if (!user) {
+      return false;
     }
 
-    return null;
+    return this.userModel.findByIdAndUpdate(
+      id,
+      { $set: payload },
+
+      { new: true },
+    );
   }
 
-  remove(id: number) {
-    const index = this.users.findIndex((item) => item.userId === id);
+  async remove(id: string) {
+    const user = await this.findOne(id);
 
-    if (index === -1) {
-      throw new NotFoundException(`User ${id} not found`);
+    if (!user) {
+      return false;
     }
-    this.users.splice(index, 1);
-    return true;
+
+    return this.userModel.findByIdAndDelete(id);
   }
 
-  getFacturaByUser(id: number): Factura {
-    const user = this.findOne(id);
+  async getOrdersByUser(id: string) {
+    const user = await this.findOne(id);
 
     return {
-      facturaId: 4,
-      folio: 'F-123',
-      status: 'Cobrado',
-      cantidad: 28899,
-      notes: 'Factura en memoria',
-      rememberAt: new Date(),
-      createAt: new Date(),
-      updateAt: new Date(),
+      date: new Date(),
       user,
-      customer: this.customersService.findAll(), // id provisional
+      products: [],
     };
   }
 }

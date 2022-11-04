@@ -7,7 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from 'src/users/users.module';
-import { CustomerModule } from './customers/customer.module';
+import { ProductModule } from './products/product.module';
 import { DatabaseModule } from './database/database.module';
 
 import { enviroments } from 'src/enviroments';
@@ -25,7 +25,7 @@ import config from 'src/config';
       }),
     }),
     UserModule,
-    CustomerModule,
+    ProductModule,
     HttpModule,
     DatabaseModule,
   ],
