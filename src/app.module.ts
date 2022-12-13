@@ -11,6 +11,8 @@ import { ProductModule } from './products/product.module';
 import { DatabaseModule } from './database/database.module';
 
 import { enviroments } from 'src/enviroments';
+import { AuthModule } from './auth/auth.module';
+
 import config from 'src/config';
 @Module({
   imports: [
@@ -28,6 +30,7 @@ import config from 'src/config';
     ProductModule,
     HttpModule,
     DatabaseModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [

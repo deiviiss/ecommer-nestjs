@@ -5,6 +5,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { User } from 'src/users/entities/user.entitys';
 import { CreateUserDto, UpdateUserDto } from 'src/users/dtos/user.dtos';
 
+import * as bcrypt from 'bcrypt';
+
 // import productService
 // import { ProductsService } from 'src/products/services/products.service';
 
@@ -33,9 +35,17 @@ export class UsersService {
   }
 
   async create(payload: CreateUserDto) {
-    const newuser = await this.userModel.create(payload);
+    const newUser = await this.userModel.create(payload);
 
-    return await newuser.save();
+    const hashPassword = await bcrypt.hash(newUser.password, 10);
+
+    newUser.password = hashPassword;
+
+    const model = await newUser.save();
+
+    const { password, ...rta } = model.toJSON();
+
+    return rta;
   }
 
   async update(id: string, payload: UpdateUserDto) {
@@ -71,5 +81,9 @@ export class UsersService {
       user,
       products: [],
     };
+  }
+
+  async findByEmail(email: string) {
+    return await this.userModel.findOne({ email }).exec();
   }
 }

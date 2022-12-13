@@ -7,7 +7,10 @@ import {
   Delete,
   Body,
   Query,
+  UseGuards,
 } from '@nestjs/common';
+import { ApiKeyGuard } from 'src/auth/guards/api-key.guard';
+import { Public } from 'src/auth/decorators/public.decorator';
 import {
   ApiTags,
   ApiOperation,
@@ -28,16 +31,20 @@ import {
 } from 'src/products/dtos/category.dtos';
 
 @ApiTags('Categories')
+@UseGuards(ApiKeyGuard)
 @Controller('categories')
 export class CategoriesController {
   constructor(private categoryService: CategoriesService) {}
 
+  @Public()
   @Get('/')
   // swagger
   @ApiOperation({ summary: 'Get all categorys' })
   @ApiOkResponse({ description: 'Response Ok' })
   @ApiNotFoundResponse({ description: 'Not found response' })
   getCategorys(@Query() params: FilterCategorysDto) {
+    console.log('here');
+
     return this.categoryService.findAll(params);
   }
 

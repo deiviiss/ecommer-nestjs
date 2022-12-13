@@ -7,13 +7,10 @@ import {
   Min,
   ValidateIf,
   IsUrl,
-  ValidateNested,
   IsMongoId,
 } from 'class-validator';
 // import { PartialType } from '@nestjs/mapped-types'; // to use swagger
 import { ApiProperty, PartialType } from '@nestjs/swagger';
-
-import { CreateCategoryDto } from './category.dtos';
 
 export class CreateProductDto {
   @IsString()

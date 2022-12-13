@@ -1,4 +1,4 @@
-import { Prop, SchemaFactory, Schema, raw } from '@nestjs/mongoose';
+import { Prop, SchemaFactory, Schema } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { Brand } from 'src/products/entities/brand.entity';
 import { Category } from './category.entity';
