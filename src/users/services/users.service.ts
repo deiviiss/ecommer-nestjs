@@ -1,80 +1,81 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Model } from 'mongoose';
-import { InjectModel } from '@nestjs/mongoose';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
-import { User } from 'src/users/entities/user.entitys';
+import { User } from 'src/users/entities/user.entity';
 import { CreateUserDto, UpdateUserDto } from 'src/users/dtos/user.dtos';
 
 import * as bcrypt from 'bcrypt';
-
-// import productService
 // import { ProductsService } from 'src/products/services/products.service';
-
-// import { ConfigService } from '@nestjs/config';
+import { CustomersService } from './customers.service';
 
 @Injectable()
 export class UsersService {
   constructor(
-    // injection services products (products)
-    // private productsService: ProductsService,
-    @InjectModel(User.name) private userModel: Model<User>,
-  ) {}
+    @InjectRepository(User) private userRepo: Repository<User>,
+    // private productService: ProductsService,
+    private customerService: CustomersService,
+  ) { }
 
   findAll() {
-    return this.userModel.find();
+    return this.userRepo.find({
+      relations: ['customer'],
+    });
   }
 
-  findOne(id: string) {
-    const user = this.userModel.findById(id);
+  findOne(userId: number) {
+    const user = this.userRepo.findOne({ where: { userId } });
 
     if (!user) {
-      throw new NotFoundException(`User ${id} not found`);
+      throw new NotFoundException(`User ${userId} not found`);
     }
 
     return user;
   }
 
   async create(payload: CreateUserDto) {
-    const newUser = await this.userModel.create(payload);
+    const newUser = await this.userRepo.create(payload);
+
+    if (payload.customerId) {
+      const customer = await this.customerService.findOne(payload.customerId);
+
+      newUser.customer = customer;
+    }
 
     const hashPassword = await bcrypt.hash(newUser.password, 10);
-
     newUser.password = hashPassword;
 
-    const model = await newUser.save();
+    //!eliminar el password del return
+    // const { password, ...rta } = model.toJSON();
+    // return rta;
 
-    const { password, ...rta } = model.toJSON();
-
-    return rta;
+    return this.userRepo.save(newUser);
   }
 
-  async update(id: string, payload: UpdateUserDto) {
-    const user = await this.findOne(id);
+  async update(userId: number, payload: UpdateUserDto) {
+    const user = await this.findOne(userId);
 
     if (!user) {
       return false;
     }
 
-    return this.userModel.findByIdAndUpdate(
-      id,
-      { $set: payload },
+    const userUpdate = this.userRepo.merge(user, payload);
 
-      { new: true },
-    );
+    return this.userRepo.save(userUpdate);
   }
 
-  async remove(id: string) {
-    const user = await this.findOne(id);
+  async remove(userId: number) {
+    const user = await this.findOne(userId);
 
     if (!user) {
       return false;
     }
 
-    return this.userModel.findByIdAndDelete(id);
+    return this.userRepo.delete(userId);
   }
 
-  async getOrdersByUser(id: string) {
-    const user = await this.findOne(id);
+  async getOrdersByUser(userId: number) {
+    const user = await this.findOne(userId);
 
     return {
       date: new Date(),
@@ -83,7 +84,7 @@ export class UsersService {
     };
   }
 
-  async findByEmail(email: string) {
-    return await this.userModel.findOne({ email }).exec();
-  }
+  // async findByEmail(email: string) {
+  //   return await this.userRepo.findOne({ email });
+  // }
 }

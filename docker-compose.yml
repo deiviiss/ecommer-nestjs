@@ -1,24 +1,42 @@
-version: '3.3'
+version: "3.8"
 
 services:
   postgres:
-    image: postgres:13
-    environment:
-      - POSTGRES_DB=db_namme
-      - POSTGRES_USER=root
-      - POSTGRES_PASSWORD=admin123
+    container_name: postgres
+    image: postgres
+    restart: always
     ports:
-      - 5432:5432
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=root
     volumes:
       - ./postgres_data:/var/lib/postgresql/data
 
+  postgres-replica:
+    container_name: postgres-replica
+    image: postgres
+    restart: always
+    ports:
+      - "5434:5434"
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=root
+    volumes:
+      - ./postgres_data_replica:/var/lib/postgresql/data
+
   pgadmin:
+    container_name: pgadmin
     image: dpage/pgadmin4
     environment:
       - PGADMIN_DEFAULT_EMAIL=admin@mail.com
       - PGADMIN_DEFAULT_PASSWORD=root
     ports:
-      - 5050:80
+      - "80:80"
+    depends_on:
+      - postgres
 
   mysql:
     image: mysql:5
@@ -38,6 +56,23 @@ services:
       - PMA_HOST=mysql
     ports:
       - 8080:80
+
+  mariadb:
+    image: mariadb
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: metro_cdmx
+      MYSQL_USER: davidh
+      MYSQL_PASSWORD: 123
+    volumes:
+      - ${PWD}/mariadb:/var/lib/mysql
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
 
   mongo:
     container_name: mongo-dev

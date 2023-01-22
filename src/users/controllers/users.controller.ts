@@ -17,59 +17,75 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
 } from '@nestjs/swagger';
-import { MongoIdPipe } from 'src/common/mongo-id.pipe';
 
+import { ParseIntPipe } from 'src/common/parse-int.pipe';
 import { UsersService } from 'src/users/services/users.service';
 import { CreateUserDto, UpdateUserDto } from 'src/users/dtos/user.dtos';
 
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
-  constructor(private userService: UsersService) {}
+  constructor(private userService: UsersService) { }
 
   @Get('/')
-  // swagger
-  @ApiOperation({ summary: 'Get all users' })
+  @ApiOperation({ summary: 'GET ALL USERS' })
   @ApiOkResponse({ description: 'Response Ok' })
+  @ApiUnauthorizedResponse({
+    description: 'Not Authorized',
+  })
   @ApiNotFoundResponse({ description: 'Not found response' })
-  getUser() {
+  getUsers() {
     return this.userService.findAll();
   }
 
   @Get('/:userId')
-  getFactura(@Param('userId', MongoIdPipe) userId: string) {
+  @ApiOperation({ summary: 'GET ONE USER' })
+  @ApiOkResponse({ description: 'Response Ok' })
+  @ApiUnauthorizedResponse({
+    description: 'Not Authorized',
+  })
+  @ApiNotFoundResponse({ description: 'Not found response' })
+  getUser(@Param('userId', ParseIntPipe) userId: number) {
     return this.userService.findOne(userId);
   }
 
   @Post('/')
-  //swagger
-  @ApiOperation({ summary: 'Create user' })
+  @ApiOperation({ summary: 'CREATE USER' })
+  @ApiOkResponse({ description: 'Response Ok' })
   @ApiUnauthorizedResponse({
     description: 'Not Authorized',
   })
-  @ApiBadRequestResponse({
-    description: 'Bad request',
-  })
+  @ApiNotFoundResponse({ description: 'Not found response' })
   @ApiCreatedResponse({
-    description: 'User created',
+    description: 'user created',
   })
   @ApiForbiddenResponse()
   createUser(@Body() payload: CreateUserDto) {
-    const rta = this.userService.create(payload);
-
-    return rta;
+    return this.userService.create(payload);
   }
 
   @Patch('/:userId')
+  @ApiOperation({ summary: 'UPDATE USER' })
+  @ApiOkResponse({ description: 'Response Ok' })
+  @ApiUnauthorizedResponse({
+    description: 'Not Authorized',
+  })
+  @ApiNotFoundResponse({ description: 'Not found response' })
   updateUser(
-    @Param('userId', MongoIdPipe) userId: string,
+    @Param('userId', ParseIntPipe) userId: number,
     @Body() payload: UpdateUserDto,
   ) {
     return this.userService.update(userId, payload);
   }
 
   @Delete('/:userId')
-  deleteUser(@Param('userId', MongoIdPipe) userId: string) {
+  @ApiOperation({ summary: 'DELETE USER' })
+  @ApiOkResponse({ description: 'Response Ok' })
+  @ApiUnauthorizedResponse({
+    description: 'Not Authorized',
+  })
+  @ApiNotFoundResponse({ description: 'Not found response' })
+  deleteUser(@Param('userId', ParseIntPipe) userId: number) {
     return this.userService.remove(userId);
   }
 }

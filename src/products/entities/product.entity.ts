@@ -1,41 +1,69 @@
-import { Prop, SchemaFactory, Schema } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
-import { Brand } from 'src/products/entities/brand.entity';
+import {
+  PrimaryGeneratedColumn,
+  Column,
+  Entity,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+  ManyToMany,
+  JoinTable,
+  JoinColumn,
+} from 'typeorm';
+
+import { Exclude } from 'class-transformer';
+
+import { Brand } from './brand.entity';
 import { Category } from './category.entity';
 
-@Schema()
-export class Product extends Document {
-  @Prop({ required: true })
+@Entity({ name: 'products' })
+export class Product {
+  @PrimaryGeneratedColumn({ name: 'product_id', type: 'int' })
+  productId: number;
+
+  @Column({ type: 'varchar', length: 255, unique: true })
   name: string;
 
-  @Prop({ required: true })
+  @Column({ type: 'text' })
   description: string;
 
-  @Prop({ required: true, type: Number, index: true })
+  @Column({ type: 'int' })
   price: number;
 
-  @Prop({ required: true, type: Number })
+  @Column({ type: 'int' })
   stock: number;
 
-  @Prop({ required: true })
+  @Column({ type: 'text' })
   image: string;
 
-  // relación embebida
-  // @Prop(
-  //   raw({
-  //     name: { type: String },
-  //     image: { type: String },
-  //   }),
-  // )
-  // category: Record<string, any>;
+  @Exclude()
+  @CreateDateColumn({
+    name: 'created_at',
+    type: 'timestamptz',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
+  createAt: Date;
 
-  // relación id
-  @Prop({ type: Types.ObjectId, ref: Category.name })
-  category: Category | Types.ObjectId;
+  @Exclude()
+  @UpdateDateColumn({
+    name: 'updated_at',
+    type: 'timestamptz',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
+  updateAt: Date;
 
-  @Prop({ type: Types.ObjectId, ref: Brand.name })
-  brand: Brand | Types.ObjectId;
+  @ManyToOne(() => Brand, (brand) => brand.products)
+  @JoinColumn({ name: 'brand_id' })
+  brand: Brand;
+
+  @ManyToMany(() => Category, (category) => category.products)
+  @JoinTable({
+    name: 'products_categories',
+    joinColumn: {
+      name: 'product_id',
+    },
+    inverseJoinColumn: {
+      name: 'category_id',
+    },
+  })
+  categories: Category[];
 }
-
-export const ProductSchema = SchemaFactory.createForClass(Product);
-ProductSchema.index({ price: -1 });

@@ -7,6 +7,7 @@ import {
   Delete,
   Body,
 } from '@nestjs/common';
+import { ParseIntPipe } from 'src/common/parse-int.pipe';
 import {
   ApiTags,
   ApiOperation,
@@ -17,7 +18,6 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
 } from '@nestjs/swagger';
-import { MongoIdPipe } from 'src/common/mongo-id.pipe';
 
 import { OrdersService } from 'src/users/services/orders.service';
 import { CreateOrderDto, UpdateOrderDto } from 'src/users/dtos/order.dtos';
@@ -25,28 +25,37 @@ import { CreateOrderDto, UpdateOrderDto } from 'src/users/dtos/order.dtos';
 @ApiTags('Order')
 @Controller('orders')
 export class OrdersController {
-  constructor(private orderService: OrdersService) {}
+  constructor(private orderService: OrdersService) { }
 
   @Get('/')
-  // swagger
-  @ApiOperation({ summary: 'Get all order' })
+  @ApiOperation({ summary: 'GET ALL ORDERS' })
   @ApiOkResponse({ description: 'Response Ok' })
+  @ApiUnauthorizedResponse({
+    description: 'Not Authorized',
+  })
   @ApiNotFoundResponse({ description: 'Not found response' })
-  getorder() {
+  getOrders() {
     return this.orderService.findAll();
   }
 
   @Get('/:orderId')
-  getFactura(@Param('orderId', MongoIdPipe) orderId: string) {
+  @ApiOperation({ summary: 'GET ONE ORDER' })
+  @ApiOkResponse({ description: 'Response Ok' })
+  @ApiUnauthorizedResponse({
+    description: 'Not Authorized',
+  })
+  @ApiNotFoundResponse({ description: 'Not found response' })
+  getOrder(@Param('orderId', ParseIntPipe) orderId: number) {
     return this.orderService.findOne(orderId);
   }
 
   @Post('/')
-  //swagger
-  @ApiOperation({ summary: 'Create order' })
+  @ApiOperation({ summary: 'CREATE ORDER' })
+  @ApiOkResponse({ description: 'Response Ok' })
   @ApiUnauthorizedResponse({
     description: 'Not Authorized',
   })
+  @ApiNotFoundResponse({ description: 'Not found response' })
   @ApiBadRequestResponse({
     description: 'Bad request',
   })
@@ -54,22 +63,37 @@ export class OrdersController {
     description: 'order created',
   })
   @ApiForbiddenResponse()
-  createorder(@Body() payload: CreateOrderDto) {
+  createOrder(@Body() payload: CreateOrderDto) {
     const rta = this.orderService.create(payload);
 
     return rta;
   }
 
   @Patch('/:orderId')
-  updateorder(
-    @Param('orderId', MongoIdPipe) orderId: string,
+  @ApiOperation({ summary: 'UPDATE ORDER' })
+  @ApiOkResponse({ description: 'Response Ok' })
+  @ApiUnauthorizedResponse({
+    description: 'Not Authorized',
+  })
+  @ApiNotFoundResponse({ description: 'Not found response' })
+  @ApiBadRequestResponse({
+    description: 'Bad request',
+  })
+  updateOrder(
+    @Param('orderId', ParseIntPipe) orderId: number,
     @Body() payload: UpdateOrderDto,
   ) {
     return this.orderService.update(orderId, payload);
   }
 
   @Delete('/:orderId')
-  deleteorder(@Param('orderId', MongoIdPipe) orderId: string) {
+  @ApiOperation({ summary: 'DELETE ORDER' })
+  @ApiOkResponse({ description: 'Response Ok' })
+  @ApiUnauthorizedResponse({
+    description: 'Not Authorized',
+  })
+  @ApiNotFoundResponse({ description: 'Not found response' })
+  deleteOrder(@Param('orderId', ParseIntPipe) orderId: number) {
     return this.orderService.remove(orderId);
   }
 }

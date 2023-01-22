@@ -7,10 +7,10 @@ import {
   Delete,
   Body,
   Query,
-  UseGuards,
+  // UseGuards,
 } from '@nestjs/common';
-import { ApiKeyGuard } from 'src/auth/guards/api-key.guard';
-import { Public } from 'src/auth/decorators/public.decorator';
+// import { ApiKeyGuard } from 'src/auth/guards/api-key.guard';
+// import { Public } from 'src/auth/decorators/public.decorator';
 import {
   ApiTags,
   ApiOperation,
@@ -21,53 +21,53 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
 } from '@nestjs/swagger';
-import { MongoIdPipe } from 'src/common/mongo-id.pipe';
+import { ParseIntPipe } from 'src/common/parse-int.pipe';
 
 import { CategoriesService } from 'src/products/services/categories.service';
 import {
   CreateCategoryDto,
   UpdateCategoryDto,
-  FilterCategorysDto,
+  FilterCategoryDto,
 } from 'src/products/dtos/category.dtos';
 
 @ApiTags('Categories')
-@UseGuards(ApiKeyGuard)
+// @UseGuards(ApiKeyGuard)
 @Controller('categories')
 export class CategoriesController {
-  constructor(private categoryService: CategoriesService) {}
+  constructor(private categoryService: CategoriesService) { }
 
-  @Public()
+  // @Public()
   @Get('/')
-  // swagger
-  @ApiOperation({ summary: 'Get all categorys' })
+  @ApiOperation({ summary: 'GET ALL CATEGORIES' })
   @ApiOkResponse({ description: 'Response Ok' })
   @ApiNotFoundResponse({ description: 'Not found response' })
-  getCategorys(@Query() params: FilterCategorysDto) {
-    console.log('here');
-
+  getCategories(@Query() params: FilterCategoryDto) {
     return this.categoryService.findAll(params);
   }
 
   @Get('/filter')
-  // swagger
-  @ApiOperation({ summary: 'Get filter categorys' })
+  @ApiOperation({ summary: 'GET FILTER CATEGORIES' })
   @ApiOkResponse({ description: 'Response Ok' })
   @ApiNotFoundResponse({ description: 'Not found response' })
-  getCategoryFilter() {
+  getCategoriesFilter() {
     return `Iam a filter`;
   }
 
   @Get('/:categoryId')
-  getCategory(@Param('categoryId', MongoIdPipe) categoryId: string) {
+  @ApiOperation({ summary: 'GET ONE CATEGORY' })
+  @ApiOkResponse({ description: 'Response Ok' })
+  @ApiNotFoundResponse({ description: 'Not found response' })
+  getCategory(@Param('categoryId', ParseIntPipe) categoryId: number) {
     return this.categoryService.findOne(categoryId);
   }
 
   @Post('/')
-  //swagger
-  @ApiOperation({ summary: 'Create category' })
+  @ApiOperation({ summary: 'CREATE CATEGORY' })
+  @ApiOkResponse({ description: 'Response Ok' })
   @ApiUnauthorizedResponse({
     description: 'Not Authorized',
   })
+  @ApiNotFoundResponse({ description: 'Not found response' })
   @ApiBadRequestResponse({
     description: 'Bad request',
   })
@@ -82,15 +82,27 @@ export class CategoriesController {
   }
 
   @Patch('/:categoryId')
+  @ApiOperation({ summary: 'UPDATE CATEGORY' })
+  @ApiOkResponse({ description: 'Response Ok' })
+  @ApiUnauthorizedResponse({
+    description: 'Not Authorized',
+  })
+  @ApiNotFoundResponse({ description: 'Not found response' })
   updateCategory(
-    @Param('categoryId', MongoIdPipe) categoryId: string,
+    @Param('categoryId', ParseIntPipe) categoryId: number,
     @Body() payload: UpdateCategoryDto,
   ) {
     return this.categoryService.update(categoryId, payload);
   }
 
   @Delete('/:categoryId')
-  deleteCategory(@Param('categoryId', MongoIdPipe) categoryId: string) {
+  @ApiOperation({ summary: 'DELETE CATEGORY' })
+  @ApiOkResponse({ description: 'Response Ok' })
+  @ApiUnauthorizedResponse({
+    description: 'Not Authorized',
+  })
+  @ApiNotFoundResponse({ description: 'Not found response' })
+  deleteCategory(@Param('categoryId', ParseIntPipe) categoryId: number) {
     return this.categoryService.remove(categoryId);
   }
 }

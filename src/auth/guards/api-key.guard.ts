@@ -24,7 +24,7 @@ export class ApiKeyGuard implements CanActivate {
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     const isPublic = this.reflector.get(IS_PUBLIC_KEY, context.getHandler());
-    console.log(isPublic);
+    // console.log(isPublic);
 
     if (isPublic) {
       return true;
@@ -33,7 +33,7 @@ export class ApiKeyGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<Request>();
 
     const authHeader = request.header('AUTH');
-    console.log(authHeader);
+    // console.log(authHeader);
 
     const isAuth = authHeader === this.configService.apiKey;
 

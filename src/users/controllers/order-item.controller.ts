@@ -19,41 +19,41 @@ import {
   ApiOkResponse,
 } from '@nestjs/swagger';
 
-import { CustomersService } from 'src/users/services/customers.service';
+import { OrderItemService } from '../services/order-item.service';
 import {
-  CreateCustomerDto,
-  UpdateCustomerDto,
-} from 'src/users/dtos/customer.dtos';
+  CreateOrderItemDto,
+  UpdateOrderItemDto,
+} from '../dtos/order-item.dtos';
 
-@ApiTags('Customer')
-@Controller('customers')
-export class CustomerController {
-  constructor(private customerService: CustomersService) { }
+@ApiTags('Order Items')
+@Controller('order-item')
+export class OrderItemController {
+  constructor(private itemService: OrderItemService) { }
 
   @Get('/')
-  @ApiOperation({ summary: 'GET ALL CUSTOMERS' })
+  @ApiOperation({ summary: 'GET ALL ITEMS' })
   @ApiOkResponse({ description: 'Response Ok' })
   @ApiUnauthorizedResponse({
     description: 'Not Authorized',
   })
   @ApiNotFoundResponse({ description: 'Not found response' })
-  getCustomers() {
-    return this.customerService.findAll();
+  getItemsOrder() {
+    return this.itemService.finAll();
   }
 
-  @Get('/:customerId')
-  @ApiOperation({ summary: 'GET ONE CUSTOMER' })
+  @Get('/:itemId')
+  @ApiOperation({ summary: 'GET ONE ITEM' })
   @ApiOkResponse({ description: 'Response Ok' })
   @ApiUnauthorizedResponse({
     description: 'Not Authorized',
   })
   @ApiNotFoundResponse({ description: 'Not found response' })
-  getCustomer(@Param('customerId', ParseIntPipe) customerId: number) {
-    return this.customerService.findOne(customerId);
+  getItemOrder(@Param('itemId', ParseIntPipe) itemId: number) {
+    return this.itemService.findOne(itemId);
   }
 
   @Post('/')
-  @ApiOperation({ summary: 'CREATE CUSTOMER' })
+  @ApiOperation({ summary: 'CREATE ITEM' })
   @ApiOkResponse({ description: 'Response Ok' })
   @ApiUnauthorizedResponse({
     description: 'Not Authorized',
@@ -63,37 +63,37 @@ export class CustomerController {
     description: 'Bad request',
   })
   @ApiCreatedResponse({
-    description: 'Customer created',
+    description: 'item created',
   })
   @ApiForbiddenResponse()
-  createCustomer(@Body() payload: CreateCustomerDto) {
-    const rta = this.customerService.create(payload);
+  createItemOrder(@Body() payload: CreateOrderItemDto) {
+    const rta = this.itemService.create(payload);
 
     return rta;
   }
 
-  @Patch('/:customerId')
-  @ApiOperation({ summary: 'UPDATE CUSTOMER' })
+  @Patch('/:itemId')
+  @ApiOperation({ summary: 'UPDATE ITEM' })
   @ApiOkResponse({ description: 'Response Ok' })
   @ApiUnauthorizedResponse({
     description: 'Not Authorized',
   })
   @ApiNotFoundResponse({ description: 'Not found response' })
-  updateCustomer(
-    @Param('customerId', ParseIntPipe) customerId: number,
-    @Body() payload: UpdateCustomerDto,
+  updateItemOrder(
+    @Param('itemId', ParseIntPipe) itemId: number,
+    @Body() payload: UpdateOrderItemDto,
   ) {
-    return this.customerService.update(customerId, payload);
+    return this.itemService.update(itemId, payload);
   }
 
-  @Delete('/:customerId')
-  @ApiOperation({ summary: 'DELETE CUSTOMER' })
+  @Delete('/:itemId')
+  @ApiOperation({ summary: 'DELETE ITEM' })
   @ApiOkResponse({ description: 'Response Ok' })
   @ApiUnauthorizedResponse({
     description: 'Not Authorized',
   })
   @ApiNotFoundResponse({ description: 'Not found response' })
-  deletecustomer(@Param('customerId', ParseIntPipe) customerId: number) {
-    return this.customerService.remove(customerId);
+  deleteItemOrder(@Param('itemId', ParseIntPipe) itemId: number) {
+    return this.itemService.remove(itemId);
   }
 }

@@ -22,7 +22,7 @@ export class CreateCategoryDto {
 
 export class UpdateCategoryDto extends PartialType(CreateCategoryDto) {}
 
-export class FilterCategorysDto {
+export class FilterCategoryDto {
   @IsOptional()
   @IsPositive()
   limit: number;

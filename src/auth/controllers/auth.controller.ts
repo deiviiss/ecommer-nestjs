@@ -10,7 +10,7 @@ import {
 } from '@nestjs/swagger';
 
 import { AuthService } from '../services/auth.service';
-import { User } from 'src/users/entities/user.entitys';
+import { User } from 'src/users/entities/user.entity';
 
 @ApiTags('Login')
 @Controller('auth')
@@ -24,6 +24,6 @@ export class AuthController {
   @Post('/login')
   login(@Req() req: Request) {
     const user = req.user as User;
-    return this.authService.generateJWT(user);
+    // return this.authService.generateJWT(user);
   }
 }

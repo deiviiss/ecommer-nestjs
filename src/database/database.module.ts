@@ -1,54 +1,48 @@
 import { Module, Global } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
-
-import { MongooseModule } from '@nestjs/mongoose';
-// import { MongoClient } from 'mongodb';
+import { TypeOrmModule } from '@nestjs/typeorm';
+// import { Client } from 'pg';
 
 import config from 'src/config';
-const API_KEY = 'API_KEY dev';
-const API_KEY_PROD = 'API_KEY prod';
-
 @Global()
 @Module({
   imports: [
-    MongooseModule.forRootAsync({
-      useFactory: async (configService: ConfigType<typeof config>) => {
-        const { dbName, user, password, port, host, connection } =
-          configService.mongo;
+    TypeOrmModule.forRootAsync({
+      inject: [config.KEY],
+      useFactory: (configService: ConfigType<typeof config>) => {
+        const { user, password, host, port, dbName } = configService.postgres;
 
         return {
-          uri: `${connection}://${host}:${port}`,
-          user,
-          pass: password,
-          dbName,
+          type: 'postgres',
+          host,
+          port,
+          username: user,
+          password,
+          database: dbName,
+          synchronize: false,
+          autoLoadEntities: true, //! false on production
         };
       },
-      inject: [config.KEY],
     }),
   ],
   providers: [
-    {
-      provide: 'API_KEY',
-      useValue: process.env.NODE_ENV === 'prod' ? API_KEY_PROD : API_KEY,
-    },
-    {
-      provide: 'MONGO',
-      useFactory: async (configService: ConfigType<typeof config>) => {
-        const { dbName, user, password, port, host, connection } =
-          configService.mongo;
-
-        return {
-          uri: `${connection}://${user}:${password}@${host}:${port}`,
-          user,
-          password,
-          host,
-          port,
-          dbName,
-        };
-      },
-      inject: [config.KEY],
-    },
+    // {
+    //   provide: 'PG',
+    //   useFactory: (configService: ConfigType<typeof config>) => {
+    //     const { user, host, dbName, password, port } = configService.postgres;
+    //     const client = new Client({
+    //       user,
+    //       host,
+    //       database: dbName,
+    //       password,
+    //       port,
+    //     });
+    //     client.connect();
+    //     return client;
+    //   },
+    //   inject: [config.KEY],
+    // },
   ],
-  exports: ['API_KEY', 'MONGO', MongooseModule],
+  exports: [TypeOrmModule],
 })
 export class DatabaseModule {}

@@ -4,24 +4,27 @@ import {
   Entity,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToMany,
+  OneToOne,
+  JoinColumn,
 } from 'typeorm';
-
-import { Exclude } from 'class-transformer';
-
-import { Product } from './product.entity';
-@Entity({ name: 'brands' })
-export class Brand {
-  @PrimaryGeneratedColumn({ name: 'brand_id', type: 'int' })
-  brandId: number;
+import { Customer } from './customer.entity';
+@Entity({ name: 'users' })
+export class User {
+  @PrimaryGeneratedColumn({ name: 'user_id', type: 'int' })
+  userId: number;
 
   @Column({ type: 'varchar', length: 255, unique: true })
   name: string;
 
-  @Column()
-  image: string;
+  @Column({ type: 'varchar', unique: true })
+  email: string;
 
-  @Exclude()
+  @Column()
+  password: string;
+
+  @Column()
+  role: string;
+
   @CreateDateColumn({
     name: 'created_at',
     type: 'timestamptz',
@@ -29,7 +32,6 @@ export class Brand {
   })
   createAt: Date;
 
-  @Exclude()
   @UpdateDateColumn({
     name: 'updated_at',
     type: 'timestamptz',
@@ -37,6 +39,7 @@ export class Brand {
   })
   updateAt: Date;
 
-  @OneToMany(() => Product, (product) => product.brand)
-  products: Product[];
+  @OneToOne(() => Customer, (customer) => customer.user, { nullable: true })
+  @JoinColumn({ name: 'customer_id' })
+  customer: Customer;
 }

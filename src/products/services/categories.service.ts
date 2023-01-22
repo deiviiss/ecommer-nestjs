@@ -1,74 +1,66 @@
-import { NotFoundException } from '@nestjs/common';
-import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model, FilterQuery } from 'mongoose';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 
 import { Category } from 'src/products/entities/category.entity';
 import {
   CreateCategoryDto,
   UpdateCategoryDto,
-  FilterCategorysDto,
+  FilterCategoryDto,
+  //! cambiando tablas a singular y agregando los filterDTO
 } from 'src/products/dtos/category.dtos';
+import { take } from 'rxjs';
 
 @Injectable()
 export class CategoriesService {
   constructor(
-    @InjectModel(Category.name) private categoryModel: Model<Category>,
+    @InjectRepository(Category) private categoryRepo: Repository<Category>,
   ) {}
 
-  async findAll(params?: FilterCategorysDto) {
+  async findAll(params?: FilterCategoryDto) {
     if (params) {
-      const filters: FilterQuery<Category> = {};
-
+      const where: FindOptionsWhere<Category> = {};
       const { limit, offset } = params;
 
-      return await this.categoryModel
-        .find(filters)
-        .skip(offset)
-        .limit(limit)
-        .exec();
+      return await this.categoryRepo.find({
+        where,
+        take: limit,
+        skip: offset,
+      });
     }
 
-    return await this.categoryModel.find().exec();
+    return await this.categoryRepo.find();
   }
 
-  async findOne(id: string) {
-    const category = await this.categoryModel.findById(id).exec();
+  async findOne(categoryId: number) {
+    const category = await this.categoryRepo.findOne({
+      where: { categoryId },
+      relations: ['products'],
+    });
 
     if (!category) {
-      throw new NotFoundException(`category ${id} not found`);
+      throw new NotFoundException(`category ${categoryId} not found`);
     }
 
     return category;
   }
 
   async create(payload: CreateCategoryDto) {
-    const newcategory = await this.categoryModel.create(payload);
+    const newcategory = await this.categoryRepo.create(payload);
 
-    return await newcategory.save();
+    return await this.categoryRepo.save(newcategory);
   }
 
-  async update(id: string, payload: UpdateCategoryDto) {
-    const category = await this.findOne(id);
+  async update(categoryId: number, payload: UpdateCategoryDto) {
+    const category = await this.findOne(categoryId);
 
-    if (!category) {
-      return false;
-    }
+    const categoryUpdate = this.categoryRepo.merge(category, payload);
 
-    return this.categoryModel.findByIdAndUpdate(
-      id,
-      { $set: payload },
-      { new: true },
-    );
+    return this.categoryRepo.save(categoryUpdate);
   }
 
-  async remove(id: string) {
-    const category = await this.findOne(id);
-
-    if (!category) {
-      return false;
-    }
-
-    return this.categoryModel.findByIdAndDelete(id);
+  async remove(categoryId: number) {
+    await this.findOne(categoryId);
+    return this.categoryRepo.delete(categoryId);
   }
 }
