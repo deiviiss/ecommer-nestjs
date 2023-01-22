@@ -4,20 +4,32 @@ import {
   Entity,
   CreateDateColumn,
   UpdateDateColumn,
-  ManyToMany,
+  OneToOne,
+  OneToMany,
 } from 'typeorm';
 
 import { Exclude } from 'class-transformer';
 
-import { Product } from './product.entity';
+import { User } from './user.entity';
+import { Order } from './order.entity';
 
-@Entity({ name: 'categories' })
-export class Category {
-  @PrimaryGeneratedColumn({ name: 'category_id', type: 'int' })
-  categoryId: number;
+@Entity({ name: 'customers' })
+export class Customer {
+  @PrimaryGeneratedColumn({
+    name: 'customer_id',
+  })
+  customerId: number;
 
   @Column({ type: 'varchar', length: 255, unique: true })
   name: string;
+
+  @Column({
+    name: 'last_name',
+  })
+  lastName: string;
+
+  @Column({ type: 'varchar', length: 255 })
+  phone: number;
 
   @Exclude()
   @CreateDateColumn({
@@ -35,6 +47,11 @@ export class Category {
   })
   updateAt: Date;
 
-  @ManyToMany(() => Product, (product) => product.categories)
-  products: Product[];
+  @OneToOne(() => User, (user) => user.customer, {
+    nullable: true,
+  })
+  user: User;
+
+  @OneToMany(() => Order, (order) => order.customer)
+  orders: Order[];
 }

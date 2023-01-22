@@ -1,83 +1,153 @@
-import { NotFoundException } from '@nestjs/common';
-import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model, FilterQuery } from 'mongoose';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { In, Repository, Between, FindOptionsWhere } from 'typeorm';
 
 import { Product } from 'src/products/entities/product.entity';
+import { Category } from 'src/products/entities/category.entity';
+import { Brand } from '../entities/brand.entity';
+
 import {
   CreateProductDto,
   UpdateProductDto,
-  FilterProductsDto,
+  FilterProductDto,
 } from 'src/products/dtos/product.dtos';
 
 @Injectable()
 export class ProductsService {
   constructor(
-    @InjectModel(Product.name) private productModel: Model<Product>,
+    @InjectRepository(Product) private productRepo: Repository<Product>,
+    @InjectRepository(Brand) private brandRepo: Repository<Brand>,
+    @InjectRepository(Category) private categoryRepo: Repository<Category>,
   ) {}
 
-  async findAll(params?: FilterProductsDto) {
+  async findAll(params?: FilterProductDto) {
     if (params) {
-      const filters: FilterQuery<Product> = {};
-
+      const where: FindOptionsWhere<Product> = {};
       const { limit, offset } = params;
-      const { minPrice, maxPrice } = params;
+      const { maxPrice, minPrice } = params;
 
       if (minPrice && maxPrice) {
-        filters.price = { $gte: minPrice, $lte: maxPrice };
+        where.price = Between(minPrice, maxPrice);
       }
 
-      return await this.productModel
-        .find(filters)
-        // .populate(['brand', 'category'])
-        .skip(offset)
-        .limit(limit)
-        .exec();
+      return await this.productRepo.find({
+        relations: ['brand'],
+        where,
+        take: limit,
+        skip: offset,
+      });
     }
 
-    return await this.productModel.find().exec();
+    return await this.productRepo.find({
+      relations: ['brand'],
+    });
   }
 
-  async findOne(id: string) {
-    const product = await this.productModel
-      .findById(id)
-      .populate(['brand', 'category'])
-      .exec();
-
+  async findOne(productId: number) {
+    const product = await this.productRepo.findOne({
+      where: { productId },
+      relations: ['brand', 'categories'],
+    });
     if (!product) {
-      throw new NotFoundException(`product ${id} not found`);
+      throw new NotFoundException(`product ${productId} not found`);
     }
-
     return product;
   }
 
   async create(payload: CreateProductDto) {
-    const newproduct = await this.productModel.create(payload);
+    const newProduct = this.productRepo.create(payload);
 
-    return await newproduct.save();
-  }
+    if (payload.brandId) {
+      const brandId = payload.brandId;
+      const brand = await this.brandRepo.findOne({ where: { brandId } });
 
-  async update(id: string, payload: UpdateProductDto) {
-    const product = await this.findOne(id);
-
-    if (!product) {
-      return false;
+      newProduct.brand = brand;
     }
 
-    return this.productModel.findByIdAndUpdate(
-      id,
-      { $set: payload },
-      { new: true },
+    if (payload.categoriesIds) {
+      const categories = await this.categoryRepo.findBy({
+        categoryId: In(payload.categoriesIds),
+      });
+
+      newProduct.categories = categories;
+    }
+
+    return this.productRepo.save(newProduct);
+  }
+
+  async update(id: number, payload: UpdateProductDto) {
+    const product = await this.findOne(id);
+
+    if (payload.brandId) {
+      const brandId = payload.brandId;
+      const brand = await this.brandRepo.findOne({ where: { brandId } });
+
+      product.brand = brand;
+    }
+
+    if (payload.categoriesIds) {
+      const categories = await this.categoryRepo.findBy({
+        categoryId: In(payload.categoriesIds),
+      });
+
+      product.categories = categories;
+    }
+
+    const productUpdate = this.productRepo.merge(product, payload);
+
+    return this.productRepo.save(productUpdate);
+  }
+
+  async removeCategoryFromProduct(productId: number, categoryId: number) {
+    const product = await this.productRepo.findOne({
+      where: { productId },
+      relations: ['categories'],
+    });
+
+    if (!product) {
+      throw new NotFoundException(`product ${productId} not found`);
+    }
+
+    product.categories = product.categories.filter(
+      (item) => item.categoryId !== categoryId,
     );
+
+    return this.productRepo.save(product);
   }
 
-  async remove(id: string) {
-    const product = await this.findOne(id);
+  async addCategoryToProduct(productId: number, categoryId: number) {
+    const product = await this.productRepo.findOne({
+      where: { productId },
+      relations: ['categories'],
+    });
 
     if (!product) {
-      return false;
+      throw new NotFoundException(`product ${productId} not found`);
     }
 
-    return this.productModel.findByIdAndDelete(id);
+    // validaciones de si existe la categoria
+    const category = await this.categoryRepo.findOne({ where: { categoryId } });
+
+    if (!category) {
+      throw new NotFoundException(`category ${categoryId} not found`);
+    }
+
+    const existCategory = product.categories.find(
+      (item) => item.categoryId == categoryId,
+    );
+
+    if (existCategory) {
+      throw new NotFoundException(
+        `category ${categoryId} is already present in this product`,
+      );
+    }
+
+    product.categories.push(category);
+
+    return this.productRepo.save(product);
+  }
+
+  async remove(id: number) {
+    return this.productRepo.delete(id);
   }
 }

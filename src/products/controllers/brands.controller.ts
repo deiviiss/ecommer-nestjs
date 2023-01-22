@@ -8,6 +8,7 @@ import {
   Body,
   Query,
 } from '@nestjs/common';
+import { ParseIntPipe } from 'src/common/parse-int.pipe';
 import {
   ApiTags,
   ApiOperation,
@@ -18,49 +19,59 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
 } from '@nestjs/swagger';
-import { MongoIdPipe } from 'src/common/mongo-id.pipe';
 
 import { BrandsService } from 'src/products/services/brands.service';
 import {
   CreateBrandDto,
   UpdateBrandDto,
-  FilterBrandsDto,
+  FilterBrandDto,
 } from 'src/products/dtos/brand.dtos';
 
 @ApiTags('Brands')
 @Controller('brands')
 export class BrandsController {
-  constructor(private brandService: BrandsService) {}
+  constructor(private brandService: BrandsService) { }
 
   @Get('/')
-  // swagger
-  @ApiOperation({ summary: 'Get all brands' })
+  @ApiOperation({ summary: 'GET ALL BRANDS' })
   @ApiOkResponse({ description: 'Response Ok' })
+  @ApiUnauthorizedResponse({
+    description: 'Not Authorized',
+  })
   @ApiNotFoundResponse({ description: 'Not found response' })
-  getproducts(@Query() params: FilterBrandsDto) {
+  getBrands(@Query() params: FilterBrandDto) {
     return this.brandService.findAll(params);
   }
 
   @Get('/filter')
-  // swagger
-  @ApiOperation({ summary: 'Get filter brands' })
+  @ApiOperation({ summary: 'GET FILTER BRANDS' })
   @ApiOkResponse({ description: 'Response Ok' })
+  @ApiUnauthorizedResponse({
+    description: 'Not Authorized',
+  })
   @ApiNotFoundResponse({ description: 'Not found response' })
-  getbrandFilter() {
+  getBrandFilter() {
     return `Iam a filter`;
   }
 
   @Get('/:brandId')
-  getbrand(@Param('brandId', MongoIdPipe) brandId: string) {
+  @ApiOperation({ summary: 'GET ONE BRAND' })
+  @ApiOkResponse({ description: 'Response Ok' })
+  @ApiUnauthorizedResponse({
+    description: 'Not Authorized',
+  })
+  @ApiNotFoundResponse({ description: 'Not found response' })
+  getBrand(@Param('brandId', ParseIntPipe) brandId: number) {
     return this.brandService.findOne(brandId);
   }
 
   @Post('/')
-  //swagger
-  @ApiOperation({ summary: 'brand product' })
+  @ApiOperation({ summary: 'CREATE BRAND' })
+  @ApiOkResponse({ description: 'Response Ok' })
   @ApiUnauthorizedResponse({
     description: 'Not Authorized',
   })
+  @ApiNotFoundResponse({ description: 'Not found response' })
   @ApiBadRequestResponse({
     description: 'Bad request',
   })
@@ -75,15 +86,27 @@ export class BrandsController {
   }
 
   @Patch('/:brandId')
+  @ApiOperation({ summary: 'UPDATE BRAND' })
+  @ApiOkResponse({ description: 'Response Ok' })
+  @ApiUnauthorizedResponse({
+    description: 'Not Authorized',
+  })
+  @ApiNotFoundResponse({ description: 'Not found response' })
   updateBrand(
-    @Param('brandId', MongoIdPipe) brandId: string,
+    @Param('brandId', ParseIntPipe) brandId: number,
     @Body() payload: UpdateBrandDto,
   ) {
     return this.brandService.update(brandId, payload);
   }
 
   @Delete('/:brandId')
-  deleteBrand(@Param('brandId', MongoIdPipe) brandId: string) {
+  @ApiOperation({ summary: 'DELETE BRAND' })
+  @ApiOkResponse({ description: 'Response Ok' })
+  @ApiUnauthorizedResponse({
+    description: 'Not Authorized',
+  })
+  @ApiNotFoundResponse({ description: 'Not found response' })
+  deleteBrand(@Param('brandId', ParseIntPipe) brandId: number) {
     return this.brandService.remove(brandId);
   }
 }

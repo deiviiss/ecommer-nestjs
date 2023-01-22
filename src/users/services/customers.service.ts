@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Model } from 'mongoose';
-import { InjectModel } from '@nestjs/mongoose';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
-import { Customer } from 'src/users/entities/customer.entitys';
+import { Customer } from 'src/users/entities/customer.entity';
 import {
   CreateCustomerDto,
   UpdateCustomerDto,
@@ -11,51 +11,48 @@ import {
 @Injectable()
 export class CustomersService {
   constructor(
-    @InjectModel(Customer.name) private customerModel: Model<Customer>,
-  ) {}
+    @InjectRepository(Customer) private customerRepo: Repository<Customer>,
+  ) { }
 
   findAll() {
-    return this.customerModel.find();
+    return this.customerRepo.find();
   }
 
-  findOne(id: string) {
-    const customer = this.customerModel.findById(id);
+  findOne(customerId: number) {
+    const customer = this.customerRepo.findOne({ where: { customerId } });
 
     if (!customer) {
-      throw new NotFoundException(`Customer ${id} not found`);
+      throw new NotFoundException(`Customer ${customerId} not found`);
     }
 
     return customer;
   }
 
   async create(payload: CreateCustomerDto) {
-    const newcustomer = await this.customerModel.create(payload);
+    const newcustomer = await this.customerRepo.create(payload);
 
-    return await newcustomer.save();
+    return await this.customerRepo.save(newcustomer);
   }
 
-  async update(id: string, payload: UpdateCustomerDto) {
-    const customer = await this.findOne(id);
+  async update(customerId: number, payload: UpdateCustomerDto) {
+    const customer = await this.findOne(customerId);
 
     if (!customer) {
       return false;
     }
 
-    return this.customerModel.findByIdAndUpdate(
-      id,
-      { $set: payload },
+    const customerUpdate = this.customerRepo.merge(customer, payload);
 
-      { new: true },
-    );
+    return this.customerRepo.save(customerUpdate);
   }
 
-  async remove(id: string) {
-    const customer = await this.findOne(id);
+  async remove(customerId: number) {
+    const customer = await this.findOne(customerId);
 
     if (!customer) {
       return false;
     }
 
-    return this.customerModel.findByIdAndDelete(id);
+    return this.customerRepo.delete(customerId);
   }
 }
